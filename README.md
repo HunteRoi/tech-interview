@@ -58,7 +58,7 @@ Let's create a parser and test it **in pair programming**!
 
 ## Requirements
 
-- You cannot change the `ÌParser` interface, not the `FileSystemEntry` class.
+- You cannot change the `ÌParser` interface, nor the `FileSystemEntry` class.
 - You should use the provided `FileSystemEntry` class to represent a file system file or folder.
 - You are to fully cover your code by writing tests.
 
