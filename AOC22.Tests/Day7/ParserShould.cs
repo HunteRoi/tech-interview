@@ -5,15 +5,25 @@ using Xunit;
 
 namespace AOC22.Tests.Day7;
 
-public class ParserShould
+public class ParserShould : IDisposable
 {
     private IParser _parser;
+
+    #region BeforeEach/AfterEach
 
     public ParserShould()
     {
         _parser = new Parser();
     }
 
+    public void Dispose()
+    {
+        _parser = null!;
+        GC.SuppressFinalize(this);
+    }
+
+    #endregion
+    
     [Theory(DisplayName = "Given an input not starting with a \"cd\" command, it should throw an ArgumentException")]
     [InlineData("$ ls")]
     [InlineData("$ ls\n$ cd /")]
@@ -21,16 +31,24 @@ public class ParserShould
     {
         var act = () => _parser.Parse(input);
 
+        act.Should().Throw<ArgumentException>("the file system's input lecture must start with a \"cd /\"");
+    }
+
+    [Fact(DisplayName =
+        "Given a \"cd\" command at first, not pointing to the root directory, it should throw an ArgumentException")]
+    public void ParseShouldThrowArgumentExceptionWhenInputDoesNotStartOnRootDirectory()
+    {
+        const string input = "$ cd a";
+        var act = () => _parser.Parse(input);
+
         act.Should().Throw<ArgumentException>("the file system's input must start at root directory");
     }
 
-    [Theory(DisplayName = "Given a \"cd\" command, it should return a file system entry representing the proper directory")]
-    [InlineData("$ cd /", "/")]
-    [InlineData("$ cd a", "a")]
-    [InlineData("$ cd c", "c")]
-    public void ParseCdAndReturnDirectory(string input, string folderName)
+    [Fact(DisplayName = "Given a \"cd /\" command, it should return a file system entry representing the root directory")]
+    public void ParseCdAndReturnDirectory()
     {
-        var expected = FileSystemEntry.Folder(folderName);
+        const string input = "$ cd /";
+        var expected = FileSystemEntry.Folder("/");
 
         var actual = _parser.Parse(input);
 
@@ -40,7 +58,7 @@ public class ParserShould
     [Fact(DisplayName = "Given the \"ls\" command, it should return a file system entry representing the root directory's content")]
     public void ParseCdAndLsAndReturnDirectoryAndContent()
     {
-        const string input = "$cd /\n$ ls\ndir a\n14848514 b.txt\n8504156 c.dat\ndir d";
+        const string input = "$ cd /\n$ ls\ndir a\n14848514 b.txt\n8504156 c.dat\ndir d";
         var expected = FileSystemEntry.Folder("/").AddChildren(
             FileSystemEntry.Folder("a"),
             FileSystemEntry.File("b.txt", 14_848_514),
